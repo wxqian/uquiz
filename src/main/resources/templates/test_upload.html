@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>test upload</title>
+    <script type="text/javascript" src="/js/jquery.js"></script>
+</head>
+<body style="background-color: #edf1f3">
+
+<div class="h70"></div>
+<div class="activity-list">
+    <div class="al-list">
+
+        <div class="no-activity" style="text-align: center; font-size: 16px; width: 100%; margin-top: 160px">
+            <input type="file" id="upload" onchange="upload(this)">
+
+        </div>
+        <div id="result" class="no-activity"
+             style="text-align: center; font-size: 16px; width: 100%; margin-top: 160px">
+            <img src="">
+            <video src="" controls="controls" id="videoTest">
+                您的浏览器不支持 video 标签。
+            </video>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    function upload(obj) {
+        var file = $(obj)[0].files[0];
+        if (!file) {
+            layer.msg("请选择图片");
+        }
+        console.log(file);
+        var formdata = new FormData();
+        //var formdata=new FormData($("#form1")[0]);//获取文件法一
+        formdata.append("file", $(obj)[0].files[0]);//获取文件法二
+        formdata.append("space", "uquiz_video");
+        formdata.append("owner", "-1");
+        formdata.append("name", "-1");
+        $.ajax({
+            type: 'post',
+            url: '/api/file/upload',
+            data: formdata,
+            cache: false,
+            processData: false, // 不处理发送的数据，因为data值是Formdata对象，不需要对数据做处理
+            contentType: false, // 不设置Content-type请求头
+            dataType: "json",   //返回格式为json
+            success: function (res) {
+                console.log(res);
+                $("#videoTest").attr("src", "/api/file/" + res.id);
+            },
+            error: function () {
+            }
+        });
+    }
+
+</script>
+</html>
