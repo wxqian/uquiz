@@ -3,7 +3,6 @@ package com.leaf.uquiz.core.exception;
 import com.leaf.uquiz.core.messages.MessageUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -20,13 +19,11 @@ public class GlobalExceptionHandler {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private MessageUtil messageUtil;
-
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public ErrorInfo defaultErrorHandler(HttpServletRequest request, Exception e) throws Exception {
-        return jsonErrorHandler(request, e);
+        ErrorInfo errorInfo = jsonErrorHandler(request, e);
+        return errorInfo;
     }
 
     public ErrorInfo jsonErrorHandler(HttpServletRequest request, Exception e) throws Exception {
