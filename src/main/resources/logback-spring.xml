@@ -2,16 +2,32 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
+    <appender name="FILE_ERROR"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <file>${LOG_PATH}/uquiz.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/uquiz.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <triggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10MB</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+
     <springProfile name="dev">
-        <appender-ref ref="CONSOLE"/>
+        <root>
+            <appender-ref ref="CONSOLE"/>
+        </root>
     </springProfile>
 
     <springProfile name="prod">
-        <appender-ref ref="FILE">
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <FileNamePattern>.%d{yyyy-MM-dd}.log</FileNamePattern>
-                <MaxHistory>30</MaxHistory>
-            </rollingPolicy>
-        </appender-ref>
+        <root>
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </root>
     </springProfile>
 </configuration>
