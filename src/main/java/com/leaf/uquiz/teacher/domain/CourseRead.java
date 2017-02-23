@@ -19,7 +19,7 @@ public class CourseRead implements Serializable {
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
-    private long id;
+    private Long id;
 
     @Column
     private long courseId;
@@ -39,14 +39,6 @@ public class CourseRead implements Serializable {
 
     public void setCourseId(long courseId) {
         this.courseId = courseId;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getIp() {
@@ -71,5 +63,13 @@ public class CourseRead implements Serializable {
 
     public void setReadTime(Date readTime) {
         this.readTime = readTime;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

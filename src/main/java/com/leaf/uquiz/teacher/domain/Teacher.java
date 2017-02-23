@@ -2,6 +2,8 @@ package com.leaf.uquiz.teacher.domain;
 
 import com.leaf.uquiz.core.common.LeafPolaris;
 import com.leaf.uquiz.core.enums.Status;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -15,35 +17,45 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "t_teacher")
+@ApiModel(value = "教师信息", discriminator = "Teacher")
 public class Teacher implements Serializable {
 
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
+    @ApiModelProperty("id")
     private long id;
 
     @Column(length = 50)
+    @ApiModelProperty("openId")
     private String openId;
 
     @Column(length = 150, nullable = false)
+    @ApiModelProperty("用户头像url")
     private String headImg;
 
     @Column(length = 100, nullable = false)
+    @ApiModelProperty("用户昵称")
     private String nickName;
 
     @Column(length = 100)
+    @ApiModelProperty("用户姓名")
     private String name;
 
     @Column(length = 50)
+    @ApiModelProperty("所授课程")
     private String course;
 
     @Column(length = 100)
+    @ApiModelProperty("任职学校")
     private String university;
 
     @Column(length = 50)
+    @ApiModelProperty("职称")
     private String level;
 
     @Column(length = 50)
+    @ApiModelProperty("联系电话")
     private String phone;
 
     @Column

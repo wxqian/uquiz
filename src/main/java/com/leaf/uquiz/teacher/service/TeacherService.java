@@ -1,14 +1,25 @@
 package com.leaf.uquiz.teacher.service;
 
+import com.leaf.uquiz.core.enums.Status;
+import com.leaf.uquiz.core.exception.MyException;
+import com.leaf.uquiz.core.utils.SessionUtils;
+import com.leaf.uquiz.teacher.domain.Course;
+import com.leaf.uquiz.teacher.domain.CourseContent;
 import com.leaf.uquiz.teacher.domain.Teacher;
+import com.leaf.uquiz.teacher.repository.CourseContentRepository;
+import com.leaf.uquiz.teacher.repository.CourseReadRepository;
+import com.leaf.uquiz.teacher.repository.CourseRepository;
 import com.leaf.uquiz.teacher.repository.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.List;
 
 /**
  * @author <a href="mailto:qianwx@asiainfo.com">qianwx</a>
@@ -20,6 +31,15 @@ public class TeacherService {
 
     @Autowired
     private TeacherRepository teacherRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private CourseContentRepository courseContentRepository;
+
+    @Autowired
+    private CourseReadRepository courseReadRepository;
 
     /**
      * 根据openId 查找用户
@@ -86,6 +106,38 @@ public class TeacherService {
      * @param teacher
      */
     public void modifyTeacher(Teacher teacher) {
+        Assert.notNull(teacher, "用户不能为空");
+        Teacher user = getCurrentTeacher();
+        teacher.setId(user.getId());
+        teacher.setNickName(encodeNickName(teacher.getNickName()));
+        teacherRepository.save(teacher);
+    }
 
+    /**
+     * 查询教师列表
+     *
+     * @param pageable
+     * @return
+     */
+    public Page<Course> listCourse(Pageable pageable) {
+        Teacher teacher = getCurrentTeacher();
+        Page<Course> courses = courseRepository.findTeacherCourse(teacher.getId(), Status.ENABLED, pageable);
+        if (courses.hasNext()) {
+            for (Course course : courses.getContent()) {
+                int count = courseReadRepository.getReadCount(course.getId());
+                course.setCount(count);
+                List<CourseContent> contents = courseContentRepository.getCourseContents(course.getId(), Status.ENABLED);
+                course.setContents(contents);
+            }
+        }
+        return courses;
+    }
+
+    private Teacher getCurrentTeacher() {
+        Teacher user = (Teacher) SessionUtils.getSession().getAttribute("user");
+        if (user == null) {
+            throw new MyException(10000, "请登录后操作");
+        }
+        return user;
     }
 }

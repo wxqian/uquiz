@@ -20,7 +20,7 @@ public class CourseContent implements Serializable {
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
-    private long id;
+    private Long id;
 
     @Column
     private long courseId;
@@ -61,14 +61,6 @@ public class CourseContent implements Serializable {
         this.courseId = courseId;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public int getSort() {
         return sort;
     }
@@ -83,5 +75,13 @@ public class CourseContent implements Serializable {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
