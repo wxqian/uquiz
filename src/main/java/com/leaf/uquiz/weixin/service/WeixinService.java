@@ -7,6 +7,8 @@ import com.leaf.uquiz.core.config.WeixinConfig;
 import com.leaf.uquiz.core.exception.MyException;
 import com.leaf.uquiz.core.utils.HttpClientUtil;
 import com.leaf.uquiz.core.utils.SessionUtils;
+import com.leaf.uquiz.teacher.domain.Teacher;
+import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.aes.AesException;
 import com.leaf.uquiz.weixin.aes.SHA1;
 import org.apache.commons.io.Charsets;
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +54,10 @@ public class WeixinService {
 
     @Autowired
     private StringCache stringCache;
+
+    @Autowired
+    @Lazy
+    private TeacherService teacherService;
 
     /**
      * 验证服务器地址的有效性
@@ -175,10 +182,16 @@ public class WeixinService {
         String openId = jsonObject.getString("openid");
         logger.info("openId:{}", openId);
         SessionUtils.getSession().setAttribute("openId", openId);
-        String accessToken = jsonObject.getString(ACCESS_TOKEN);
-        logger.info("accessToken:{}", accessToken);
-        JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken, openId}, null);
         // TODO: 2017/2/19 用户信息
+        Teacher teacher = teacherService.findTeacherByOpenId(openId);
+        if (teacher == null) {
+            JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
+            String nickName = obj.getString("nickname");
+            String headImg = obj.getString("headimgurl");
+            logger.info("nickName:{},headImg:{}", nickName, headImg);
+            teacher = teacherService.createTeacher(openId, nickName, headImg);
+        }
+        SessionUtils.getSession().setAttribute("user", teacher);
         return "redirect:" + realUrl;
     }
 
