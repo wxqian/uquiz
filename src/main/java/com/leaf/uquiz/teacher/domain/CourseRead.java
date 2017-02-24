@@ -28,7 +28,7 @@ public class CourseRead implements Serializable {
     private String ip;
 
     @Column
-    private Date readTime;
+    private Date readTime = new Date();
 
     @Column(length = 100)
     private String openId;

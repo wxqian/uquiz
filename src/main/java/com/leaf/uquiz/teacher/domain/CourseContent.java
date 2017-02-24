@@ -3,6 +3,8 @@ package com.leaf.uquiz.teacher.domain;
 import com.leaf.uquiz.core.common.LeafPolaris;
 import com.leaf.uquiz.core.enums.ContentType;
 import com.leaf.uquiz.core.enums.Status;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -15,26 +17,33 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "t_course_content")
+@ApiModel(value = "课程详情", discriminator = "CourseContent")
 public class CourseContent implements Serializable {
 
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
+    @ApiModelProperty("id")
     private Long id;
 
     @Column
+    @ApiModelProperty("课程id")
     private long courseId;
 
     @Column
+    @ApiModelProperty("内容类型")
     private ContentType contentType;
 
     @Column(columnDefinition = "CLOB NOT NULL")
+    @ApiModelProperty("内容详细")
     private String content;
 
     @Column
+    @ApiModelProperty("状态")
     private Status status = Status.ENABLED;
 
     @Column
+    @ApiModelProperty("排序")
     private int sort;
 
     public String getContent() {

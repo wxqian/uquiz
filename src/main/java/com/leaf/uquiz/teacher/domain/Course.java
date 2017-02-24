@@ -3,6 +3,8 @@ package com.leaf.uquiz.teacher.domain;
 import com.leaf.uquiz.core.common.LeafPolaris;
 import com.leaf.uquiz.core.enums.ContentType;
 import com.leaf.uquiz.core.enums.Status;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -17,23 +19,29 @@ import java.util.List;
  */
 @Entity
 @Table(name = "t_course")
+@ApiModel
 public class Course implements Serializable {
 
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
+    @ApiModelProperty("id")
     private Long id;
 
     @Column
+    @ApiModelProperty("教师Id")
     private long teacherId;
 
     @Column
-    private Date createTime;
+    @ApiModelProperty("创建时间")
+    private Date createTime = new Date();
 
     @Column
+    @ApiModelProperty("标题")
     private String title;
 
     @Column
+    @ApiModelProperty("status")
     private Status status = Status.ENABLED;
 
     @Transient
@@ -111,5 +119,12 @@ public class Course implements Serializable {
 
     public Long getId() {
         return id;
+    }
+
+    public Course() {
+    }
+
+    public Course(long teacherId) {
+        this.teacherId = teacherId;
     }
 }

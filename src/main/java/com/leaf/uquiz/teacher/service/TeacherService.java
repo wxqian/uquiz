@@ -124,13 +124,24 @@ public class TeacherService {
         Page<Course> courses = courseRepository.findTeacherCourse(teacher.getId(), Status.ENABLED, pageable);
         if (courses.hasNext()) {
             for (Course course : courses.getContent()) {
-                int count = courseReadRepository.getReadCount(course.getId());
-                course.setCount(count);
-                List<CourseContent> contents = courseContentRepository.getCourseContents(course.getId(), Status.ENABLED);
-                course.setContents(contents);
+                getCourseDetail(course);
             }
         }
         return courses;
+    }
+
+    /**
+     * 获取课程内容列表和阅读次数等信息
+     *
+     * @param course
+     * @return
+     */
+    private Course getCourseDetail(Course course) {
+        int count = courseReadRepository.getReadCount(course.getId());
+        course.setCount(count);
+        List<CourseContent> contents = courseContentRepository.getCourseContents(course.getId(), Status.ENABLED);
+        course.setContents(contents);
+        return course;
     }
 
     private Teacher getCurrentTeacher() {
@@ -139,5 +150,52 @@ public class TeacherService {
             throw new MyException(10000, "请登录后操作");
         }
         return user;
+    }
+
+    /**
+     * 获取课程详情,如果id等于0,则是新建课程
+     *
+     * @param id
+     * @return
+     */
+    public Course detailCourse(long id) {
+        Course course;
+        if (id == 0) {
+            Teacher teacher = getCurrentTeacher();
+            course = new Course(teacher.getId());
+            return courseRepository.save(course);
+        }
+        course = courseRepository.findOne(id);
+        return getCourseDetail(course);
+    }
+
+    /**
+     * 获取登录教师信息
+     *
+     * @return
+     */
+    public Teacher teacherInfo() {
+        return getCurrentTeacher();
+    }
+
+    /**
+     * 更改课程内容
+     *
+     * @param course
+     */
+    public void modifyCourse(Course course) {
+        Assert.notNull(course, "课程不能为空");
+        course.setTeacherId(getCurrentTeacher().getId());
+        courseRepository.save(course);
+    }
+
+    /**
+     * 添加课程详情,sort若为-1,则append,否则在sort之前添加
+     *
+     * @param content
+     * @param sort
+     */
+    public void addContent(CourseContent content, int sort) {
+
     }
 }
