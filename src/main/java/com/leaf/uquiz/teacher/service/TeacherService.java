@@ -190,12 +190,59 @@ public class TeacherService {
     }
 
     /**
-     * 添加课程详情,sort若为-1,则append,否则在sort之前添加
+     * 添加课程详情,id若为0,则append,否则在sort之前添加,如果id不存在,则append
      *
      * @param content
-     * @param sort
+     * @param id      课程id
+     * @return CourseContent
      */
-    public void addContent(CourseContent content, int sort) {
+    public CourseContent addContent(CourseContent content, long id) {
+        Assert.notNull(content, "内容不能为空");
+        Assert.isTrue(content.getCourseId() > 0, "内容必须指定课程");
+        CourseContent courseContent = courseContentRepository.findOne(id);
+        if (courseContent == null) {
+            content = appendCourseContent(content);
+        } else {
+            content = insertBeforeContent(content, courseContent);
+        }
+        return content;
+    }
 
+    /**
+     * insert before content
+     *
+     * @param content
+     * @param courseContent
+     * @return
+     */
+    private CourseContent insertBeforeContent(CourseContent content, CourseContent courseContent) {
+        content.setSort(courseContent.getSort());
+        courseContentRepository.insertSort(courseContent.getCourseId(), courseContent.getSort());
+        return courseContentRepository.save(content);
+    }
+
+    /**
+     * append content
+     *
+     * @param content
+     * @return courseContent
+     */
+    private CourseContent appendCourseContent(CourseContent content) {
+        int sort = courseContentRepository.getSort(content.getCourseId());
+        content.setSort(sort + 1);
+        return courseContentRepository.save(content);
+    }
+
+    /**
+     * 删除课程内容
+     *
+     * @param contentId
+     */
+    public void delContent(long contentId) {
+        Assert.isTrue(contentId > 0, "内容id不能为空");
+        CourseContent content = courseContentRepository.findOne(contentId);
+        Assert.notNull(content, "无效的内容id");
+        content.setStatus(Status.DELETED);
+        courseContentRepository.save(content);
     }
 }

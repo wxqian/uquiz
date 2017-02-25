@@ -62,7 +62,16 @@ public class TeacherController {
     }
 
     @RequestMapping(value = "/addContent", method = RequestMethod.POST)
-    public void addContent(@RequestBody CourseContent content, @ApiParam(name = "sort", value = "不传代表append,传值代表插在值的前面") @RequestParam(name = "sort", defaultValue = "-1") int sort) {
-        teacherService.addContent(content,sort);
+    @ApiResponses({@ApiResponse(code = 200, message = "添加课程内容成功")})
+    @ApiOperation(value = "添加课程内容", notes = "添加课程内容")
+    public CourseContent addContent(@RequestBody CourseContent content, @ApiParam(name = "id", value = "不传代表append,传值代表插在值的前面") @RequestParam(name = "id", defaultValue = "0") long id) {
+        return teacherService.addContent(content, id);
+    }
+
+    @RequestMapping(value = "/content/del/{id}", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "删除课程内容成功")})
+    @ApiOperation(value = "删除课程内容", notes = "删除课程内容")
+    public void delContent(@ApiParam("id") @PathVariable("id") long contentId) {
+        teacherService.delContent(contentId);
     }
 }
