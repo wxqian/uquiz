@@ -38,7 +38,7 @@ public class WeixinService {
     private static String ACCESS_TOKEN = "access_token";
     private static String JSAPI_TICKET = "jsapi_ticket";
     private static String WEIXIN_AUTHORIZE_URL =
-            "https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect";
+            "https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=%s#wechat_redirect";
     private static final String WEIXIN_TOKEN_URL =
             "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code";
     // TODO: 2017/2/19  微信token地址修改
@@ -149,14 +149,15 @@ public class WeixinService {
      * 用户同意授权,获取code,静默授权
      *
      * @param url
+     * @param userType
      * @return
      */
-    public String initAuth(String url) {
+    public String initAuth(String url, String userType) {
         Assert.hasLength(url, "url不能为空");
         logger.info("url:{1}", url);
         return "redirect:" + String.format(WEIXIN_AUTHORIZE_URL,
                 weixinConfig.getAppId(),
-                encode(String.format(WEIXIN_BASE_URL, url)));
+                encode(String.format(WEIXIN_BASE_URL, url)), userType);
     }
 
     private String encode(String url) {
@@ -172,9 +173,10 @@ public class WeixinService {
      *
      * @param code
      * @param realUrl
+     * @param userType
      * @return
      */
-    public String show(String code, String realUrl) {
+    public String show(String code, String realUrl, String userType) {
         Assert.hasLength(code, "用户未允许授权");
         Assert.hasLength(realUrl, "真实跳转url");
         logger.info("code:{},realUrl:{}", code, realUrl);
@@ -182,16 +184,17 @@ public class WeixinService {
         String openId = jsonObject.getString("openid");
         logger.info("openId:{}", openId);
         SessionUtils.getSession().setAttribute("openId", openId);
-        // TODO: 2017/2/19 用户信息
-        Teacher teacher = teacherService.findTeacherByOpenId(openId);
-        if (teacher == null) {
-            JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
-            String nickName = obj.getString("nickname");
-            String headImg = obj.getString("headimgurl");
-            logger.info("nickName:{},headImg:{}", nickName, headImg);
-            teacher = teacherService.createTeacher(openId, nickName, headImg);
+        if (StringUtils.equals(userType, "teacher")) {
+            Teacher teacher = teacherService.findTeacherByOpenId(openId);
+            if (teacher == null) {
+                JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
+                String nickName = obj.getString("nickname");
+                String headImg = obj.getString("headimgurl");
+                logger.info("nickName:{},headImg:{}", nickName, headImg);
+                teacher = teacherService.createTeacher(openId, nickName, headImg);
+            }
+            SessionUtils.getSession().setAttribute("user", teacher);
         }
-        SessionUtils.getSession().setAttribute("user", teacher);
         return "redirect:" + realUrl;
     }
 

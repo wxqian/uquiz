@@ -36,12 +36,12 @@ public class WxCtl {
     }
 
     @RequestMapping(value = "/init", method = RequestMethod.POST)
-    public String init(@RequestParam("url") String url) {
-        return weixinService.initAuth(url);
+    public String init(@RequestParam("url") String url, @RequestParam("userType") String userType) {
+        return weixinService.initAuth(url, userType);
     }
 
     @RequestMapping(value = "/show", method = RequestMethod.POST)
-    public String show(@RequestParam("code") String code, @RequestParam("real_url") String realUrl) {
-        return weixinService.show(code, realUrl);
+    public String show(@RequestParam("code") String code, @RequestParam("real_url") String realUrl, @RequestParam("state") String userType) {
+        return weixinService.show(code, realUrl, userType);
     }
 }
