@@ -1,5 +1,6 @@
 package com.leaf.uquiz.weixin.controller;
 
+import com.leaf.uquiz.weixin.aes.AesException;
 import com.leaf.uquiz.weixin.service.WeixinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -7,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 /**
  * @author <a href="mailto:qianwx@asiainfo.com">qianwx</a>
@@ -43,5 +47,10 @@ public class WxCtl {
     @RequestMapping(value = "/show", method = RequestMethod.POST)
     public String show(@RequestParam("code") String code, @RequestParam("real_url") String realUrl, @RequestParam("state") String userType) {
         return weixinService.show(code, realUrl, userType);
+    }
+
+    @RequestMapping(value = "/handleMsg", method = RequestMethod.POST)
+    public String handleMsg(HttpServletRequest request) throws IOException, AesException {
+        return weixinService.handleMsg(request);
     }
 }

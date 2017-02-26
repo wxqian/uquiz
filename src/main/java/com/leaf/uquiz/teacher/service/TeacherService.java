@@ -10,9 +10,13 @@ import com.leaf.uquiz.teacher.repository.CourseContentRepository;
 import com.leaf.uquiz.teacher.repository.CourseReadRepository;
 import com.leaf.uquiz.teacher.repository.CourseRepository;
 import com.leaf.uquiz.teacher.repository.TeacherRepository;
+import com.leaf.uquiz.weixin.message.resp.Resp;
+import com.leaf.uquiz.weixin.message.resp.TextResp;
+import com.leaf.uquiz.weixin.service.WeixinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -40,6 +44,12 @@ public class TeacherService {
 
     @Autowired
     private CourseReadRepository courseReadRepository;
+
+    @Autowired
+    private WeixinService weixinService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /**
      * 根据openId 查找用户
@@ -145,7 +155,7 @@ public class TeacherService {
     }
 
     private Teacher getCurrentTeacher() {
-        Teacher user = (Teacher) SessionUtils.getSession().getAttribute("user");
+        Teacher user = (Teacher) SessionUtils.getSession().getAttribute("teacher");
         if (user == null) {
             throw new MyException(10000, "请登录后操作");
         }
@@ -244,5 +254,47 @@ public class TeacherService {
         Assert.notNull(content, "无效的内容id");
         content.setStatus(Status.DELETED);
         courseContentRepository.save(content);
+    }
+
+    /**
+     * 获取用户扫码登录的二维码,有效时间5分钟
+     *
+     * @return
+     */
+    public String scanView() {
+        String ticket = weixinService.scanView();
+        SessionUtils.getSession().setAttribute("user", ticket);
+        return ticket;
+    }
+
+    /**
+     * @param fromUserName
+     * @param toUserName
+     * @param ticket
+     * @return
+     */
+    public Resp scanLogin(String fromUserName, String toUserName, String ticket) {
+        Teacher teacher = weixinService.loginTeacher(fromUserName);
+        if (teacher != null) {
+            messagingTemplate.convertAndSendToUser(ticket, "/queue/notifications", fromUserName);
+        } else {
+            throw new RuntimeException("some error occurs");
+        }
+        TextResp resp = new TextResp();
+        resp.ToUserName = fromUserName;
+        resp.FromUserName = toUserName;
+        resp.CreateTime = System.currentTimeMillis();
+        resp.Content = "您通过扫码登录了uquiz";
+        return resp;
+    }
+
+    /**
+     * 根据openId 登录
+     *
+     * @param openId
+     */
+    public void login(String openId) {
+        Teacher teacher = weixinService.loginTeacher(openId);
+        SessionUtils.getSession().setAttribute("teacher", teacher);
     }
 }

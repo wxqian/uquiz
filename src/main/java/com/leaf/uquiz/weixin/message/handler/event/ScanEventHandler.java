@@ -1,9 +1,12 @@
 package com.leaf.uquiz.weixin.message.handler.event;
 
 
+import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.message.req.Req;
 import com.leaf.uquiz.weixin.message.req.event.EventType;
+import com.leaf.uquiz.weixin.message.req.event.ScanEvent;
 import com.leaf.uquiz.weixin.message.resp.Resp;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,9 +17,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScanEventHandler extends EventHandler {
 
+    @Autowired
+    private TeacherService teacherService;
+
     @Override
     protected Resp handleInternal(Req req) {
-        return null;
+        ScanEvent event = (ScanEvent) req;
+        return teacherService.scanLogin(event.FromUserName, event.ToUserName, event.Ticket);
     }
 
     @Override

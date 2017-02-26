@@ -7,10 +7,13 @@ import com.leaf.uquiz.core.config.WeixinConfig;
 import com.leaf.uquiz.core.exception.MyException;
 import com.leaf.uquiz.core.utils.HttpClientUtil;
 import com.leaf.uquiz.core.utils.SessionUtils;
+import com.leaf.uquiz.core.utils.XMLUtil;
 import com.leaf.uquiz.teacher.domain.Teacher;
 import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.aes.AesException;
 import com.leaf.uquiz.weixin.aes.SHA1;
+import com.leaf.uquiz.weixin.aes.WXBizMsgCrypt;
+import com.leaf.uquiz.weixin.message.handler.RequestHandler;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,8 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -43,11 +51,12 @@ public class WeixinService {
             "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code";
     // TODO: 2017/2/19  微信token地址修改
     private static final String WEIXIN_BASE_URL =
-            "http://www.uquiz.com/api/weixin/show?real_url=s%";
+            "http://api.study.pointshare.com/api/weixin/show?real_url=s%";
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
     private static final String USER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN";
     private static final String TEMPLATE_SEND_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
     private static final String JSAPI_TICKET_URL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi";
+    private static final String qrUrl = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s";
 
     @Autowired
     private WeixinConfig weixinConfig;
@@ -58,6 +67,20 @@ public class WeixinService {
     @Autowired
     @Lazy
     private TeacherService teacherService;
+
+    @Autowired
+    private RequestHandler requestHandler;
+
+    private WXBizMsgCrypt wxBizMsgCrypt;
+
+    @PostConstruct
+    public void init() {
+        try {
+            wxBizMsgCrypt = new WXBizMsgCrypt(weixinConfig.getToken(), weixinConfig.getAesKey(), weixinConfig.getAppId());
+        } catch (AesException e) {
+            logger.error("init WxBizMsgCrypt occurs error");
+        }
+    }
 
     /**
      * 验证服务器地址的有效性
@@ -185,18 +208,90 @@ public class WeixinService {
         logger.info("openId:{}", openId);
         SessionUtils.getSession().setAttribute("openId", openId);
         if (StringUtils.equals(userType, "teacher")) {
-            Teacher teacher = teacherService.findTeacherByOpenId(openId);
-            if (teacher == null) {
-                JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
-                String nickName = obj.getString("nickname");
-                String headImg = obj.getString("headimgurl");
-                logger.info("nickName:{},headImg:{}", nickName, headImg);
-                teacher = teacherService.createTeacher(openId, nickName, headImg);
-            }
-            SessionUtils.getSession().setAttribute("user", teacher);
+            Teacher teacher = loginTeacher(openId);
+            SessionUtils.getSession().setAttribute("teacher", teacher);
         }
         return "redirect:" + realUrl;
     }
 
+    /**
+     * 根据openId 获取或创建教师
+     *
+     * @param openId
+     * @return
+     */
+    public Teacher loginTeacher(String openId) {
+        Teacher teacher = teacherService.findTeacherByOpenId(openId);
+        if (teacher == null) {
+            JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
+            String nickName = obj.getString("nickname");
+            String headImg = obj.getString("headimgurl");
+            logger.info("nickName:{},headImg:{}", nickName, headImg);
+            teacher = teacherService.createTeacher(openId, nickName, headImg);
+        }
+        return teacher;
+    }
 
+
+    /**
+     * 生成临时二维码,用于PC端扫码登录,有效期5分钟
+     *
+     * @return
+     */
+    public String scanView() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("expire_seconds", 5 * 60);//设置该二维码300秒过期
+        map.put("action_name", "QR_SCENE");//二维码类型为临时
+        Map<String, Object> actionInfo = new HashMap<>();
+        actionInfo.put("scene_id", 1000);
+        map.put("action_info", actionInfo);
+        JSONObject object = invoke(qrUrl, new String[]{accessToken()}, map);
+        return object.getString("ticket");
+    }
+
+    /**
+     * 处理微信服务器发送的消息
+     *
+     * @param request
+     * @return
+     */
+    public String handleMsg(HttpServletRequest request) throws IOException, AesException {
+        if (StringUtils.isNotEmpty(request.getParameter("echostr"))) {
+            return checkServer(request.getParameter("signature"),
+                    request.getParameter("timestamp"),
+                    request.getParameter("nonce"),
+                    request.getParameter("echostr"));
+        }
+        return requestHandler.handle(checkAndDecrypt(request));
+    }
+
+    /**
+     * 对接收的消息进行解密并加解密的内容转化成map
+     *
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    private Map<String, String> checkAndDecrypt(HttpServletRequest request) throws IOException, AesException {
+        logger.info("check signature start");
+        String nonce = request.getParameter("nonce");
+        String timestamp = request.getParameter("timestamp");
+        String msgSignature = request.getParameter("msg_signature");
+        logger.info("nonce:{},timestamp:{},msgSignature:{}", nonce, timestamp, msgSignature);
+        if (StringUtils.isBlank(nonce) || StringUtils.isBlank(timestamp) ||
+                StringUtils.isBlank(msgSignature)) {
+            throw new RuntimeException("arguments is invalid");
+        }
+
+        try {
+            Map<String, String> map = XMLUtil.parse(request.getInputStream());
+            String encrypt = map.get("Encrypt");
+            String result = wxBizMsgCrypt.decryptMsg(msgSignature, timestamp, nonce, encrypt);
+            return XMLUtil.parse(new ByteArrayInputStream(result.getBytes(Charsets.UTF_8.displayName())));
+        } catch (Exception e) {
+            logger.error("check signature error", e);
+            throw e;
+        }
+
+    }
 }

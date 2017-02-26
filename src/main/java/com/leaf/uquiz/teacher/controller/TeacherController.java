@@ -74,4 +74,19 @@ public class TeacherController {
     public void delContent(@ApiParam("id") @PathVariable("id") long contentId) {
         teacherService.delContent(contentId);
     }
+
+    @RequestMapping(value = "/scanView", method = RequestMethod.GET)
+    @ApiOperation(value = "返回二维码ticket", notes = "返回二维码ticket,图片地址是:https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=TICKET,TICKET为返回的ticket")
+    @ApiResponses({@ApiResponse(code = 200, message = "获取扫码登录二维码")})
+    public String scanView() {
+        return teacherService.scanView();
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "扫码登录成功")})
+    @ApiOperation(value = "扫码登陆返回openId登录", notes = "扫码登陆后返回openId登录")
+    public void login(String openId) {
+        teacherService.login(openId);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.leaf.uquiz.weixin.message.handler.event;
 
+import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.message.req.Req;
 import com.leaf.uquiz.weixin.message.req.event.EventType;
 import com.leaf.uquiz.weixin.message.req.event.SubscribeEvent;
@@ -16,12 +17,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubscribeEventHandler extends EventHandler {
 
+    @Autowired
+    private TeacherService teacherService;
 
     @Override
     protected Resp handleInternal(Req req) {
         SubscribeEvent event = (SubscribeEvent) req;
         String ticket = event.Ticket;
         //若ticket为空,则为关注事件,否则则是扫描带参数二维码事件
+        if (StringUtils.isBlank(ticket)) {
+            return teacherService.scanLogin(event.FromUserName, event.ToUserName, ticket);
+        }
         return null;
     }
 
