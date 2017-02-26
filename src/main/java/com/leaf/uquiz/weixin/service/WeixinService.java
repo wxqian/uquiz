@@ -13,6 +13,7 @@ import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.aes.AesException;
 import com.leaf.uquiz.weixin.aes.SHA1;
 import com.leaf.uquiz.weixin.aes.WXBizMsgCrypt;
+import com.leaf.uquiz.weixin.dto.WxConfig;
 import com.leaf.uquiz.weixin.message.handler.RequestHandler;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.ArrayUtils;
@@ -293,5 +294,35 @@ public class WeixinService {
             throw e;
         }
 
+    }
+
+    /**
+     * 微信分享先授权验证
+     *
+     * @param configUrl
+     * @return
+     */
+    public WxConfig config(String configUrl) {
+        Assert.hasLength(configUrl, "页面地址不能为空");
+        return new WxConfig(getJsapiTicket(), configUrl);
+    }
+
+    /**
+     * 获取js api ticket
+     *
+     * @return
+     */
+    private String getJsapiTicket() {
+        String jsapiTicket = stringCache.get(JSAPI_TICKET);
+        if (StringUtils.isBlank(jsapiTicket)) {
+            String accessToken = accessToken();
+            logger.info("***access_token:{}******", accessToken);
+            JSONObject json = invoke(JSAPI_TICKET_URL, new String[]{accessToken}, null);
+            jsapiTicket = json.getString("ticket");
+            long expire = json.getLong("expires_in");
+            logger.info("jsapi_ticket:{}", jsapiTicket);
+            stringCache.set(JSAPI_TICKET, jsapiTicket, expire);
+        }
+        return jsapiTicket;
     }
 }

@@ -1,6 +1,7 @@
 package com.leaf.uquiz.weixin.controller;
 
 import com.leaf.uquiz.weixin.aes.AesException;
+import com.leaf.uquiz.weixin.dto.WxConfig;
 import com.leaf.uquiz.weixin.service.WeixinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -52,5 +53,10 @@ public class WxCtl {
     @RequestMapping(value = "/handleMsg", method = RequestMethod.POST)
     public String handleMsg(HttpServletRequest request) throws IOException, AesException {
         return weixinService.handleMsg(request);
+    }
+
+    @RequestMapping(value = "/config", method = RequestMethod.POST)
+    public WxConfig config(String configUrl) {
+        return weixinService.config(configUrl);
     }
 }
