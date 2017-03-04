@@ -2,9 +2,11 @@ package com.leaf.uquiz.teacher.service;
 
 import com.leaf.uquiz.core.enums.Status;
 import com.leaf.uquiz.core.exception.MyException;
+import com.leaf.uquiz.core.utils.RequestUtils;
 import com.leaf.uquiz.core.utils.SessionUtils;
 import com.leaf.uquiz.teacher.domain.Course;
 import com.leaf.uquiz.teacher.domain.CourseContent;
+import com.leaf.uquiz.teacher.domain.CourseRead;
 import com.leaf.uquiz.teacher.domain.Teacher;
 import com.leaf.uquiz.teacher.repository.CourseContentRepository;
 import com.leaf.uquiz.teacher.repository.CourseReadRepository;
@@ -23,6 +25,7 @@ import org.springframework.util.Assert;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -296,5 +299,34 @@ public class TeacherService {
     public void login(String openId) {
         Teacher teacher = weixinService.loginTeacher(openId);
         SessionUtils.getSession().setAttribute("teacher", teacher);
+    }
+
+    /**
+     * 同学登录查看课程详情
+     *
+     * @param id
+     * @return
+     */
+    public Course viewCourse(long id) {
+        Assert.isTrue(id > 0, "无效的课程id");
+        Course course = courseRepository.findOne(id);
+        Assert.notNull(course, "无效的课程id");
+        course = getCourseDetail(course);
+        addCourseRead(course);
+        return course;
+    }
+
+    /**
+     * 添加课程阅读记录
+     *
+     * @param course
+     */
+    private void addCourseRead(Course course) {
+        CourseRead courseRead = new CourseRead();
+        courseRead.setCourseId(course.getId());
+        courseRead.setOpenId((String) SessionUtils.getSession().getAttribute("openId"));
+        courseRead.setIp(RequestUtils.getIP());
+        courseRead.setReadTime(new Date());
+        courseReadRepository.save(courseRead);
     }
 }

@@ -126,10 +126,14 @@ public class WeixinService {
 
     public String accessToken() {
         String accessToken = stringCache.get(ACCESS_TOKEN);
+        logger.info("accessToken:{}", accessToken);
         if (StringUtils.isBlank(accessToken)) {
+            logger.info("get Access_token from weixin");
+            logger.info("appid:{},appSecret:{}", weixinConfig.getAppId(), weixinConfig.getAppSecret());
             JSONObject object = invoke(ACCESS_TOKEN_URL, new String[]{weixinConfig.getAppId(),
                     weixinConfig.getAppSecret()}, null);
             accessToken = object.getString(ACCESS_TOKEN);
+            logger.info("get Access_token from weixin end:{}", accessToken);
 
         }
         return accessToken;
@@ -244,7 +248,9 @@ public class WeixinService {
         map.put("expire_seconds", 5 * 60);//设置该二维码300秒过期
         map.put("action_name", "QR_SCENE");//二维码类型为临时
         Map<String, Object> actionInfo = new HashMap<>();
-        actionInfo.put("scene_id", 1000);
+        Map<String, Object> scene = new HashMap<>();
+        scene.put("scene_id", 1000);
+        actionInfo.put("scene", scene);
         map.put("action_info", actionInfo);
         JSONObject object = invoke(qrUrl, new String[]{accessToken()}, map);
         return object.getString("ticket");

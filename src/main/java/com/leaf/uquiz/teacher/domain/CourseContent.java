@@ -34,7 +34,9 @@ public class CourseContent implements Serializable {
     @ApiModelProperty("内容类型")
     private ContentType contentType;
 
-    @Column(columnDefinition = "CLOB NOT NULL")
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "text")
     @ApiModelProperty("内容详细")
     private String content;
 
