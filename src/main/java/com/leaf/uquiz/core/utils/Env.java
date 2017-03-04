@@ -1,6 +1,7 @@
 package com.leaf.uquiz.core.utils;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.leaf.uquiz.core.config.SystemConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,24 +12,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class Env {
 
-    private static final String BaseUrl = "http://activity.ttgoing.com";
+    @Autowired
+    private static SystemConfig systemConfig;
 
-    @Value("system.dev-mode")
-    private static boolean devMode;
 
     public Env() {
-
-    }
-
-    public static boolean isDev() {
-        return devMode;
     }
 
     public static String url(String url) {
         if (url.startsWith("http")) {
             return url;
         }
-        return BaseUrl + format(url);
+        return systemConfig.getBaseUrl() + format(url);
     }
 
     private static String format(String url) {

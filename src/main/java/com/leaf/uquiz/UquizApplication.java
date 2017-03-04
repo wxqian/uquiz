@@ -1,5 +1,6 @@
 package com.leaf.uquiz;
 
+import com.leaf.uquiz.core.config.SystemConfig;
 import com.leaf.uquiz.core.config.WeixinConfig;
 import com.leaf.uquiz.core.redis.RedisSettings;
 import com.leaf.uquiz.file.config.FileSettings;
@@ -15,8 +16,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @date 2017/2/14
  */
 @SpringBootApplication
-@EnableAutoConfiguration(exclude = RedisAutoConfiguration.class)
-@EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class})
+@EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class})
+@EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class, SystemConfig.class})
 public class UquizApplication {
 
     public static void main(String[] args) {

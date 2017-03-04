@@ -23,14 +23,14 @@ public class SwaggerConfig {
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo()).select()
-                .apis(RequestHandlerSelectors.basePackage("com.leaf.wechat.activity.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.leaf.uquiz.teacher.controller"))
                 .paths(PathSelectors.any()).build();
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder().title("uquiz api")
-                .description("微信墙活动rest api - swagger")
-                .termsOfServiceUrl("http://localhost/")
+                .description("uquiz - api - swagger")
+                .termsOfServiceUrl("http://api.studypointshare.com/")
                 .contact("qianwx")
                 .version("1.0").build();
     }

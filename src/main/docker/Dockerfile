@@ -1,4 +1,6 @@
 FROM java
+RUN mkdir -p /u01/log
+RUN mkdir -p /u01/file
 VOLUME /tmp
 ADD uquiz-1.0-SNAPSHOT.jar app.jar
 RUN sh -c 'touch /app.jar'
