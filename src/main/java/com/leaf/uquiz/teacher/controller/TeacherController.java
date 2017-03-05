@@ -50,7 +50,7 @@ public class TeacherController {
     @RequestMapping(value = "/course/{id}", method = RequestMethod.GET)
     @ApiResponses({@ApiResponse(code = 200, message = "获取课程详情成功")})
     @ApiOperation(value = "获取课程详情", notes = "获取课程详情")
-    public Course detailCourse(@ApiParam(name = "id", value = "课程id") @PathVariable("id") @RequestParam(name = "id", defaultValue = "0") long id) {
+    public Course detailCourse(@ApiParam(name = "id", value = "课程id") @PathVariable("id") long id) {
         return teacherService.detailCourse(id);
     }
 
@@ -85,8 +85,22 @@ public class TeacherController {
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ApiResponses({@ApiResponse(code = 200, message = "扫码登录成功")})
     @ApiOperation(value = "扫码登陆返回openId登录", notes = "扫码登陆后返回openId登录")
-    public void login(String openId) {
+    public void login(@ApiParam("openId") @RequestParam("openId") String openId) {
         teacherService.login(openId);
+    }
+
+    @RequestMapping(value = "/delCourse/{id}", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "删除课程成功")})
+    @ApiOperation(value = "删除课程", notes = "删除课程")
+    public void delCourse(@ApiParam("id") @PathVariable("id") Long id) {
+        teacherService.delCourse(id);
+    }
+
+    @RequestMapping(value = "/publish/{id}", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "发布课程成功")})
+    @ApiOperation(value = "发布课程", notes = "发布课程")
+    public void publishCourse(@ApiParam("id") @PathVariable("id") Long id) {
+        teacherService.publishCourse(id);
     }
 
 }

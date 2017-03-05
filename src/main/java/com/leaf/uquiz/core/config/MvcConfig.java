@@ -1,6 +1,8 @@
 package com.leaf.uquiz.core.config;
 
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  */
 @Configuration
 public class MvcConfig extends WebMvcConfigurerAdapter {
+
+    private Logger logger = LoggerFactory.getLogger(MvcConfig.class);
 
     @Autowired
     private SystemConfig systemConfig;
@@ -41,7 +45,7 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
         configuration.setExposedHeaders(Lists.newArrayList("x-auth-token"));
         configuration.setMaxAge(3600l);
         UrlBasedCorsConfigurationSource ccs = new UrlBasedCorsConfigurationSource();
-        ccs.registerCorsConfiguration("/api/**", configuration);
+        ccs.registerCorsConfiguration("/**", configuration);
         return new CorsFilter(ccs);
     }
 }

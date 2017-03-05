@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 /**
  * @author <a href="mailto:qianwx@asiainfo.com">qianwx</a>
@@ -16,7 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @date 2017/2/14
  */
 @SpringBootApplication
-@EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class, HttpSessionHandshakeInterceptor.class})
 @EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class, SystemConfig.class})
 public class UquizApplication {
 

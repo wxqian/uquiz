@@ -42,15 +42,18 @@ public class Course implements Serializable {
 
     @Column
     @ApiModelProperty("status")
-    private Status status = Status.ENABLED;
+    private Status status = Status.AUDITING;
 
     @Transient
+    @ApiModelProperty(readOnly = true)
     private List<CourseContent> contents;
 
     @Transient
+    @ApiModelProperty(readOnly = true)
     private CourseContent firstImageContent;
 
     @Transient
+    @ApiModelProperty(readOnly = true)
     private int count;
 
     public Date getCreateTime() {
@@ -104,10 +107,12 @@ public class Course implements Serializable {
     public CourseContent getFirstImageContent() {
 
         CourseContent content = null;
-        for (CourseContent courseContent : contents) {
-            if (ContentType.IMAGE.equals(courseContent.getContentType())) {
-                content = courseContent;
-                break;
+        if (contents != null) {
+            for (CourseContent courseContent : contents) {
+                if (ContentType.IMAGE.equals(courseContent.getContentType())) {
+                    content = courseContent;
+                    break;
+                }
             }
         }
         return content;

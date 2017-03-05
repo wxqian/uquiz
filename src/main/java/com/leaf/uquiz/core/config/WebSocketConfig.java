@@ -1,5 +1,6 @@
 package com.leaf.uquiz.core.config;
 
+import com.leaf.uquiz.core.common.HttpSessionHandshakeInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
@@ -16,12 +17,13 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/scan-login").withSockJS();
+        registry.addEndpoint("/scan-login").addInterceptors(new HttpSessionHandshakeInterceptor()).setAllowedOrigins("*").withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue");
-        registry.setApplicationDestinationPrefixes("/api");
+        registry.setApplicationDestinationPrefixes("/app");
     }
+
 }

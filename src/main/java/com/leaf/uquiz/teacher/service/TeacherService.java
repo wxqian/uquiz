@@ -329,4 +329,31 @@ public class TeacherService {
         courseRead.setReadTime(new Date());
         courseReadRepository.save(courseRead);
     }
+
+    /**
+     * 删除课程
+     *
+     * @param id
+     */
+    public void delCourse(Long id) {
+        Assert.notNull(id, "无效的课程id");
+        Course course = courseRepository.findOne(id);
+        Assert.notNull(course, "无效的课程id");
+        course.setStatus(Status.DELETED);
+        courseRepository.save(course);
+    }
+
+    /**
+     * 发布课程
+     *
+     * @param id
+     */
+    public void publishCourse(Long id) {
+        Assert.notNull(id, "无效的课程id");
+        Course course = courseRepository.findOne(id);
+        Assert.notNull(course, "无效的课程id");
+        course.setStatus(Status.ENABLED);
+        courseRepository.save(course);
+    }
+
 }
