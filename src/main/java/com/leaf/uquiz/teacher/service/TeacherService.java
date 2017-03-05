@@ -15,12 +15,16 @@ import com.leaf.uquiz.teacher.repository.TeacherRepository;
 import com.leaf.uquiz.weixin.message.resp.Resp;
 import com.leaf.uquiz.weixin.message.resp.TextResp;
 import com.leaf.uquiz.weixin.service.WeixinService;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -53,6 +57,8 @@ public class TeacherService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * 根据openId 查找用户
@@ -121,22 +127,33 @@ public class TeacherService {
     public void modifyTeacher(Teacher teacher) {
         Assert.notNull(teacher, "用户不能为空");
         Teacher user = getCurrentTeacher();
+        logger.info("nickName:{}", decodeNickName(encodeNickName(teacher.getNickName())));
         teacher.setId(user.getId());
         teacher.setNickName(encodeNickName(teacher.getNickName()));
         teacherRepository.save(teacher);
+        teacher.setNickName(decodeNickName(teacher.getNickName()));
+        SessionUtils.getSession().setAttribute("teacher", teacher);
     }
 
     /**
      * 查询教师列表
      *
      * @param pageable
+     * @param type     view | use 所有 | 发布
      * @return
      */
-    public Page<Course> listCourse(Pageable pageable) {
+    public Page<Course> listCourse(Pageable pageable, String type) {
         Teacher teacher = getCurrentTeacher();
-        Page<Course> courses = courseRepository.findTeacherCourse(teacher.getId(), Status.ENABLED, pageable);
-        if (courses.hasNext()) {
-            for (Course course : courses.getContent()) {
+        Page<Course> courses;
+        if (StringUtils.equals("view", type)) {
+            courses = courseRepository.findAllTeacherCourse(teacher.getId(), Status.ENABLED, Status.AUDITING, pageable);
+        } else {
+            courses = courseRepository.findTeacherCourse(teacher.getId(), Status.ENABLED, pageable);
+        }
+        List<Course> contents = courses.getContent();
+        logger.info("content-size:{}", courses.getSize());
+        if (!CollectionUtils.isEmpty(contents)) {
+            for (Course course : contents) {
                 getCourseDetail(course);
             }
         }
