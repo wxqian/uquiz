@@ -13,11 +13,11 @@ import org.springframework.data.jpa.repository.Query;
  * @date 2017/2/23
  */
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    @Query(value = "from Course where teacherId = ?1 and status = ?2 order by id desc",
+    @Query(value = "from Course where teacherId = ?1 and status = ?2 order by createTime desc, id desc",
             countQuery = "select count(1) from Course where teacherId = ?1 and status <= ?2 ")
     Page<Course> findTeacherCourse(long teacherId, Status status, Pageable pageable);
 
-    @Query(value = "from Course where teacherId = ?1 and (status = ?2 or status = ?3) order by id desc",
+    @Query(value = "from Course where teacherId = ?1 and (status = ?2 or status = ?3) order by createTime desc ,id desc",
             countQuery = "select count(1) from Course where teacherId = ?1 and (status = ?2 or status = ?3)")
     Page<Course> findAllTeacherCourse(long teacherId, Status s1, Status s2, Pageable pageable);
 }

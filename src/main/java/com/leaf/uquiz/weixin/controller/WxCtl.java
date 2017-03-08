@@ -60,4 +60,9 @@ public class WxCtl {
     public WxConfig config(@ApiParam(name = "configUrl", value = "EncodeURI(当前页面地址)") @RequestParam("configUrl") String configUrl) {
         return weixinService.config(configUrl);
     }
+
+    @RequestMapping(value = "/voice", method = RequestMethod.POST)
+    public Object downVoice(@RequestParam("mediaId") String mediaId) {
+        return weixinService.downVoice(mediaId);
+    }
 }

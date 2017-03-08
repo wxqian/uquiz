@@ -8,6 +8,11 @@ import com.leaf.uquiz.core.exception.MyException;
 import com.leaf.uquiz.core.utils.HttpClientUtil;
 import com.leaf.uquiz.core.utils.SessionUtils;
 import com.leaf.uquiz.core.utils.XMLUtil;
+import com.leaf.uquiz.file.FileConstants;
+import com.leaf.uquiz.file.convert.FileConverter;
+import com.leaf.uquiz.file.domain.File;
+import com.leaf.uquiz.file.domain.Space;
+import com.leaf.uquiz.file.service.FileService;
 import com.leaf.uquiz.teacher.domain.Teacher;
 import com.leaf.uquiz.teacher.service.TeacherService;
 import com.leaf.uquiz.weixin.aes.AesException;
@@ -15,6 +20,11 @@ import com.leaf.uquiz.weixin.aes.SHA1;
 import com.leaf.uquiz.weixin.aes.WXBizMsgCrypt;
 import com.leaf.uquiz.weixin.dto.WxConfig;
 import com.leaf.uquiz.weixin.message.handler.RequestHandler;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +68,7 @@ public class WeixinService {
     private static final String TEMPLATE_SEND_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
     private static final String JSAPI_TICKET_URL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi";
     private static final String qrUrl = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s";
+    private static final String fileUrl = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s";
 
     @Autowired
     private WeixinConfig weixinConfig;
@@ -73,6 +84,12 @@ public class WeixinService {
     private RequestHandler requestHandler;
 
     private WXBizMsgCrypt wxBizMsgCrypt;
+
+    @Autowired
+    private FileService fileService;
+
+    @Autowired
+    private FileConverter fileConverter;
 
     @PostConstruct
     public void init() {
@@ -330,5 +347,57 @@ public class WeixinService {
             stringCache.set(JSAPI_TICKET, jsapiTicket, expire);
         }
         return jsapiTicket;
+    }
+
+    /**
+     * 从微信下载音频,并保存到file中
+     *
+     * @param mediaId
+     * @return
+     */
+    public Object downVoice(String mediaId) {
+        Assert.hasLength(mediaId, "无效的media_id");
+        String url = String.format(fileUrl, accessToken(), mediaId);
+        HttpClient client = new HttpClient();
+
+        // 使用 GET 方法 ，如果服务器需要通过 HTTPS 连接，那只需要将下面 URL 中的 http 换成 https
+        HttpMethod method = new GetMethod(url);
+
+        try {
+            int responseCode = client.executeMethod(method);
+
+            logger.info("http responseCode:{}", responseCode);
+            // 打印服务器返回的状态
+            logger.info("http response StatusLine:{}", method.getStatusLine());
+            Header header = method.getResponseHeader("Content-Type");
+            if (StringUtils.indexOf(header.getValue(), "application/json") != -1) {
+                // 打印返回的信息
+                String responseBodyAsString = new String(method.getResponseBodyAsString().getBytes("ISO-8859-1"), "UTF-8");
+                logger.info("http responseBodyAsString:{}", responseBodyAsString);
+                JSONObject obj = parseJSON(responseBodyAsString);
+                throw new RuntimeException(obj.getString("errmsg"));
+            }
+            Header h = method.getResponseHeader("Content-disposition");
+            String disposition = h.getValue();
+            String fileName = mediaId;
+            if (StringUtils.indexOf(disposition, "filename") != -1) {
+                fileName = StringUtils.substring(disposition, disposition.indexOf("\"") + 1,
+                        disposition.lastIndexOf("\""));
+            }
+            Space s = fileService.getSpace(FileConstants.SPACE_UQUIZ_VIDEO);
+            File file = new File();
+            file.setSpaceId(s.getId());
+            file.setName(fileName);
+            file.setOwner("-1");
+            file.setName("-1");
+            file.setUserId(0L);
+            return fileConverter.convert(fileService.saveInputStreamFile(file, method.getResponseBodyAsStream()));
+        } catch (IOException e) {
+            throw new RuntimeException("HTTP GET请求发生异常", e);
+        } finally {
+            // 释放连接
+            method.releaseConnection();
+            ((SimpleHttpConnectionManager) client.getHttpConnectionManager()).shutdown();
+        }
     }
 }

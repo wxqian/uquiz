@@ -127,6 +127,9 @@ public class TeacherService {
     public void modifyTeacher(Teacher teacher) {
         Assert.notNull(teacher, "用户不能为空");
         Teacher user = getCurrentTeacher();
+        if (teacher.getId() != user.getId()) {
+            throw new RuntimeException("请登陆后修改");
+        }
         logger.info("nickName:{}", decodeNickName(encodeNickName(teacher.getNickName())));
         teacher.setId(user.getId());
         teacher.setNickName(encodeNickName(teacher.getNickName()));
@@ -270,6 +273,7 @@ public class TeacherService {
      */
     public void delContent(long contentId) {
         Assert.isTrue(contentId > 0, "内容id不能为空");
+        getCurrentTeacher();
         CourseContent content = courseContentRepository.findOne(contentId);
         Assert.notNull(content, "无效的内容id");
         content.setStatus(Status.DELETED);
@@ -356,6 +360,10 @@ public class TeacherService {
         Assert.notNull(id, "无效的课程id");
         Course course = courseRepository.findOne(id);
         Assert.notNull(course, "无效的课程id");
+        Teacher user = getCurrentTeacher();
+        if (user.getId() != course.getTeacherId()) {
+            throw new RuntimeException("请登陆后操作");
+        }
         course.setStatus(Status.DELETED);
         courseRepository.save(course);
     }
@@ -369,6 +377,10 @@ public class TeacherService {
         Assert.notNull(id, "无效的课程id");
         Course course = courseRepository.findOne(id);
         Assert.notNull(course, "无效的课程id");
+        Teacher user = getCurrentTeacher();
+        if (user.getId() != course.getTeacherId()) {
+            throw new RuntimeException("请登陆后操作");
+        }
         course.setStatus(Status.ENABLED);
         courseRepository.save(course);
     }
