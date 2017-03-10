@@ -3,7 +3,10 @@ package com.leaf.uquiz.weixin.controller;
 import com.leaf.uquiz.weixin.aes.AesException;
 import com.leaf.uquiz.weixin.dto.WxConfig;
 import com.leaf.uquiz.weixin.service.WeixinService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -62,7 +65,9 @@ public class WxCtl {
     }
 
     @RequestMapping(value = "/voice", method = RequestMethod.POST)
-    public Object downVoice(@RequestParam("mediaId") String mediaId) {
-        return weixinService.downVoice(mediaId);
+    @ApiResponses({@ApiResponse(code = 200, message = "下载微信音频并转码")})
+    @ApiOperation(value = "下载微信音频并转码", notes = "下载微信音频并转码")
+    public void downVoice(@RequestParam("mediaId") String mediaId) {
+        weixinService.downVoice(mediaId);
     }
 }

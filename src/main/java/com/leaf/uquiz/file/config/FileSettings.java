@@ -10,6 +10,8 @@ public class FileSettings {
     private boolean useXsendfile;
     private String mainPath;
     private String thumbPath;
+    private String amrPath;
+    private String mp3Path;
 
     public boolean isUseXsendfile() {
         return useXsendfile;
@@ -33,5 +35,21 @@ public class FileSettings {
 
     public void setThumbPath(String thumbPath) {
         this.thumbPath = thumbPath;
+    }
+
+    public String getAmrPath() {
+        return amrPath;
+    }
+
+    public void setAmrPath(String amrPath) {
+        this.amrPath = amrPath;
+    }
+
+    public String getMp3Path() {
+        return mp3Path;
+    }
+
+    public void setMp3Path(String mp3Path) {
+        this.mp3Path = mp3Path;
     }
 }

@@ -20,11 +20,18 @@ import java.io.File;
 @Component
 public class AmrToMp3 {
 
-    @Autowired
     private static FileService fileService;
 
-    @Autowired
     private static FileConverter fileConverter;
+
+    private AmrToMp3() {
+    }
+
+    @Autowired
+    public AmrToMp3(FileService fileService, FileConverter fileConverter) {
+        this.fileService = fileService;
+        this.fileConverter = fileConverter;
+    }
 
     private static Logger logger = LoggerFactory.getLogger(AmrToMp3.class);
 
@@ -57,7 +64,6 @@ public class AmrToMp3 {
                 mp3.delete();
             }
             process = Runtime.getRuntime().exec("ffmpeg -i " + amrFile + " " + mp3File);
-            process.waitFor();
             Space s = fileService.getSpace(FileConstants.SPACE_UQUIZ_VIDEO);
             com.leaf.uquiz.file.domain.File file = new com.leaf.uquiz.file.domain.File();
             file.setSpaceId(s.getId());
@@ -65,9 +71,12 @@ public class AmrToMp3 {
             file.setOwner("-1");
             file.setName("-1");
             file.setUserId(0L);
-            return fileConverter.convert(fileService.saveInputStreamFile(file, process.getInputStream()));
+            FileDto fileDto = fileConverter.convert(fileService.saveInputStreamFile(file, process.getInputStream()));
+            process.waitFor();
+            return fileDto;
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
+            logger.error("error:{}", e.getMessage());
         } finally {
             if (process != null) {
                 process.destroy();

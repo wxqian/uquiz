@@ -13,6 +13,7 @@ public class SystemConfig {
     private String baseUrl;
     private String frontEndUrl;
     private String mobileEndUrl;
+    private String voiceUrl;
 
     public boolean isDevMode() {
         return devMode;
@@ -44,5 +45,13 @@ public class SystemConfig {
 
     public void setMobileEndUrl(String mobileEndUrl) {
         this.mobileEndUrl = mobileEndUrl;
+    }
+
+    public String getVoiceUrl() {
+        return voiceUrl;
+    }
+
+    public void setVoiceUrl(String voiceUrl) {
+        this.voiceUrl = voiceUrl;
     }
 }
