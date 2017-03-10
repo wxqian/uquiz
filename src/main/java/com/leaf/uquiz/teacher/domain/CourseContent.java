@@ -20,6 +20,7 @@ import java.io.Serializable;
 @ApiModel(value = "课程详情", discriminator = "CourseContent")
 public class CourseContent implements Serializable {
 
+    private static final long serialVersionUID = 2039613778308089071L;
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")

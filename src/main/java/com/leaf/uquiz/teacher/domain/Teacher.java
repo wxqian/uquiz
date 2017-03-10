@@ -20,6 +20,7 @@ import java.util.Date;
 @ApiModel(value = "教师信息", discriminator = "Teacher")
 public class Teacher implements Serializable {
 
+    private static final long serialVersionUID = -836926940936280786L;
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")
@@ -32,7 +33,7 @@ public class Teacher implements Serializable {
 
     @Column(length = 150, nullable = false)
     @ApiModelProperty("用户头像url")
-    private String headImg;
+    private String headImg = "http://m.studypointshare.com/images/timg.jpg";
 
     @Column(length = 100, nullable = false)
     @ApiModelProperty("用户昵称")

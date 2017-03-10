@@ -16,6 +16,7 @@ import java.util.Date;
 @Table(name = "t_course_read")
 public class CourseRead implements Serializable {
 
+    private static final long serialVersionUID = 447331475598556438L;
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")

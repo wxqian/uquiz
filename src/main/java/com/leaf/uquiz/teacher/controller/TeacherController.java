@@ -1,8 +1,11 @@
 package com.leaf.uquiz.teacher.controller;
 
+import com.leaf.uquiz.core.utils.AmrToMp3;
+import com.leaf.uquiz.file.dto.FileDto;
 import com.leaf.uquiz.teacher.domain.Course;
 import com.leaf.uquiz.teacher.domain.CourseContent;
 import com.leaf.uquiz.teacher.domain.Teacher;
+import com.leaf.uquiz.teacher.dto.TeacherRegisterDto;
 import com.leaf.uquiz.teacher.service.TeacherService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -13,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:qianwx@asiainfo.com">qianwx</a>
@@ -76,6 +81,13 @@ public class TeacherController {
         teacherService.delContent(contentId);
     }
 
+    @RequestMapping(value = "/contents/del", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "批量删除课程内容成功")})
+    @ApiOperation(value = "批量删除课程内容", notes = "批量删除课程内容")
+    public void delConents(@ApiParam(name = "id", value = "用户领奖列表id") @RequestParam("id") List<Long> ids) {
+        teacherService.delContents(ids);
+    }
+
     @RequestMapping(value = "/scanView", method = RequestMethod.GET)
     @ApiOperation(value = "返回二维码ticket", notes = "返回二维码ticket,图片地址是:https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=TICKET,TICKET为返回的ticket")
     @ApiResponses({@ApiResponse(code = 200, message = "获取扫码登录二维码")})
@@ -97,11 +109,72 @@ public class TeacherController {
         teacherService.delCourse(id);
     }
 
+    @RequestMapping(value = "/delCourses", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "批量删除课程成功")})
+    @ApiOperation(value = "批量删除课程", notes = "批量删除课程")
+    public void delCourses(@ApiParam(name = "id", value = "用户领奖列表id") @RequestParam("id") List<Long> ids) {
+        teacherService.delCourses(ids);
+    }
+
     @RequestMapping(value = "/publish/{id}", method = RequestMethod.POST)
     @ApiResponses({@ApiResponse(code = 200, message = "发布课程成功")})
     @ApiOperation(value = "发布课程", notes = "发布课程")
     public void publishCourse(@ApiParam("id") @PathVariable("id") Long id) {
         teacherService.publishCourse(id);
+    }
+
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "注册用户成功")})
+    @ApiOperation(value = "用户注册", notes = "用户注册")
+    public void register(@RequestBody TeacherRegisterDto registerDto) {
+        teacherService.register(registerDto);
+    }
+
+    @RequestMapping(value = "/userLogin", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "用户登录")})
+    @ApiOperation(value = "用户登录", notes = "用户登录")
+    public void login(@ApiParam("name") @RequestParam("name") String loginName,
+                      @ApiParam("password") @RequestParam("password") String password) {
+        teacherService.userLogin(loginName, password);
+    }
+
+    @RequestMapping(value = "/isLogin", method = RequestMethod.GET)
+    @ApiResponses({@ApiResponse(code = 200, message = "判断用户是否登录")})
+    @ApiOperation(value = "判断用户是否登录", notes = "判断用户是否登录")
+    public boolean isLogin() {
+        return teacherService.isLogin();
+    }
+
+    @RequestMapping(value = "/exists/{name}", method = RequestMethod.GET)
+    @ApiResponses({@ApiResponse(code = 200, message = "判断用户注册名是否存在")})
+    @ApiOperation(value = "判断用户注册名是否存在", notes = "判断用户注册名是否存在")
+    public boolean isUserExists(@ApiParam(name = "name", value = "注册名") @PathVariable("name") String loginName) {
+        return teacherService.isUserExists(loginName);
+    }
+
+    @RequestMapping(value = "/modifyPwd", method = RequestMethod.POST)
+    @ApiResponses({@ApiResponse(code = 200, message = "更改用户密码")})
+    @ApiOperation(value = "更改用户密码", notes = "更改用户密码")
+    public void modifyPassword(@ApiParam(name = "teacherId", value = "教师id") @RequestParam("teacherId") long teacherId,
+                               @ApiParam(name = "oldPassword", value = "原密码") @RequestParam("oldPassword") String oldPassword,
+                               @ApiParam(name = "newPassword", value = "新密码") @RequestParam("newPassword") String newPassword) {
+        teacherService.modifyPwd(teacherId, oldPassword, newPassword);
+    }
+
+    @RequestMapping(value = "/testAmr2Mp3", method = RequestMethod.GET)
+    @ApiResponses({@ApiResponse(code = 200, message = "测试amr to mp3")})
+    @ApiOperation(value = "测试amr to mp3", notes = "测试amr to mp3")
+    public void testAmrToMp3(@ApiParam("fromPath") @RequestParam("fromPath") String fromPath,
+                             @ApiParam("toPath") @RequestParam("toPath") String toPath) {
+        AmrToMp3.convert(fromPath, toPath);
+    }
+
+    @RequestMapping(value = "/testAmr2Mp3_2", method = RequestMethod.GET)
+    @ApiResponses({@ApiResponse(code = 200, message = "测试amr to mp3")})
+    @ApiOperation(value = "测试amr to mp3", notes = "测试amr to mp3")
+    public FileDto testAmrToMp3_2(@ApiParam("fromPath") @RequestParam("fromPath") String fromPath,
+                                  @ApiParam("toPath") @RequestParam("toPath") String toPath) {
+        return AmrToMp3.convert2(fromPath, toPath);
     }
 
 }

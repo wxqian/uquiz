@@ -22,6 +22,7 @@ import java.util.List;
 @ApiModel
 public class Course implements Serializable {
 
+    private static final long serialVersionUID = 6757639870162158426L;
     @Id
     @GenericGenerator(name = "LeafPolaris", strategy = LeafPolaris.Type)
     @GeneratedValue(generator = "LeafPolaris")

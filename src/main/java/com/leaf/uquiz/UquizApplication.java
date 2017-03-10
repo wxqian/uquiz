@@ -1,5 +1,6 @@
 package com.leaf.uquiz;
 
+import com.leaf.uquiz.core.config.KaptchaConfig;
 import com.leaf.uquiz.core.config.SystemConfig;
 import com.leaf.uquiz.core.config.WeixinConfig;
 import com.leaf.uquiz.core.redis.RedisSettings;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 /**
@@ -17,8 +19,9 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
  * @date 2017/2/14
  */
 @SpringBootApplication
+@EnableTransactionManagement
 @EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class, HttpSessionHandshakeInterceptor.class})
-@EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class, SystemConfig.class})
+@EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class, SystemConfig.class, KaptchaConfig.class})
 public class UquizApplication {
 
     public static void main(String[] args) {

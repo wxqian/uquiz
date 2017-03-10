@@ -11,4 +11,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
     Teacher findByOpenId(String openId);
+    Teacher findByName(String name);
 }

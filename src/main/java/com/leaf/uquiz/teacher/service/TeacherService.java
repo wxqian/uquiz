@@ -2,16 +2,12 @@ package com.leaf.uquiz.teacher.service;
 
 import com.leaf.uquiz.core.enums.Status;
 import com.leaf.uquiz.core.exception.MyException;
+import com.leaf.uquiz.core.utils.EncryptionUtil;
 import com.leaf.uquiz.core.utils.RequestUtils;
 import com.leaf.uquiz.core.utils.SessionUtils;
-import com.leaf.uquiz.teacher.domain.Course;
-import com.leaf.uquiz.teacher.domain.CourseContent;
-import com.leaf.uquiz.teacher.domain.CourseRead;
-import com.leaf.uquiz.teacher.domain.Teacher;
-import com.leaf.uquiz.teacher.repository.CourseContentRepository;
-import com.leaf.uquiz.teacher.repository.CourseReadRepository;
-import com.leaf.uquiz.teacher.repository.CourseRepository;
-import com.leaf.uquiz.teacher.repository.TeacherRepository;
+import com.leaf.uquiz.teacher.domain.*;
+import com.leaf.uquiz.teacher.dto.TeacherRegisterDto;
+import com.leaf.uquiz.teacher.repository.*;
 import com.leaf.uquiz.weixin.message.resp.Resp;
 import com.leaf.uquiz.weixin.message.resp.TextResp;
 import com.leaf.uquiz.weixin.service.WeixinService;
@@ -23,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -58,7 +55,12 @@ public class TeacherService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private UserPasswordRepository userPasswordRepository;
+
     private Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final String ALGORITHM_MD5 = "MD5";
 
     /**
      * 根据openId 查找用户
@@ -385,4 +387,120 @@ public class TeacherService {
         courseRepository.save(course);
     }
 
+    /**
+     * 批量删除课程内容
+     *
+     * @param ids
+     */
+    public void delContents(List<Long> ids) {
+        Assert.notEmpty(ids, "内容id不能为空");
+        getCurrentTeacher();
+        List<CourseContent> contents = courseContentRepository.findAll(ids);
+        Assert.notEmpty(contents, "无效的内容id");
+        for (CourseContent content : contents) {
+            content.setStatus(Status.DELETED);
+        }
+        courseContentRepository.save(contents);
+    }
+
+    /**
+     * 批量删除课程
+     *
+     * @param ids
+     */
+    public void delCourses(List<Long> ids) {
+        Assert.notEmpty(ids, "无效的课程id");
+        List<Course> courses = courseRepository.findAll(ids);
+        Assert.notEmpty(courses, "无效的课程id");
+        getCurrentTeacher();
+        for (Course course : courses) {
+            course.setStatus(Status.DELETED);
+        }
+        courseRepository.save(courses);
+    }
+
+    /**
+     * 判断当前用户是否登录
+     *
+     * @return
+     */
+    public boolean isLogin() {
+        return SessionUtils.getSession().getAttribute("teacher") != null;
+    }
+
+    /**
+     * 判断用户注册名是否存在
+     *
+     * @param loginName
+     * @return
+     */
+    public boolean isUserExists(String loginName) {
+        Teacher teacher = teacherRepository.findByName(loginName);
+        return teacher != null;
+    }
+
+    /**
+     * 注册新用户
+     *
+     * @param registerDto
+     */
+    @Transactional
+    public void register(TeacherRegisterDto registerDto) {
+        Assert.notNull(registerDto, "参数不能为空");
+        Assert.hasLength(registerDto.getName(), "用户名不能为空");
+        Assert.hasLength(registerDto.getPassword(), "用户密码不能为空");
+        Assert.hasLength(registerDto.getKaptcha(), "验证码不能为空");
+        if (isUserExists(registerDto.getName())) {
+            throw new MyException("该用户名已被注册");
+        }
+        if (!StringUtils.equalsIgnoreCase(registerDto.getKaptcha(), SessionUtils.getKaptcha())) {
+            throw new MyException("验证码出错");
+        }
+        Teacher teacher = new Teacher();
+        String name = registerDto.getName();
+        teacher.setNickName(name);
+        teacher.setNickName(name);
+        teacher = teacherRepository.save(teacher);
+        UserPassword userPassword = new UserPassword(teacher.getId(), EncryptionUtil.EncryptionStr(registerDto.getPassword(), ALGORITHM_MD5));
+        userPasswordRepository.save(userPassword);
+    }
+
+    /**
+     * 用户名密码登录
+     *
+     * @param loginName
+     * @param password
+     */
+    public void userLogin(String loginName, String password) {
+        Assert.hasLength(loginName, "用户名不能为空");
+        Assert.hasLength(password, "密码不能为空");
+        Teacher teacher = teacherRepository.findByName(loginName);
+        if (teacher == null) {
+            throw new MyException("用户名或密码错误");
+        }
+        password = EncryptionUtil.EncryptionStr(password, ALGORITHM_MD5);
+        UserPassword userPassword = userPasswordRepository.findByTeacherPassword(teacher.getId(), password);
+        if (userPassword == null) {
+            throw new MyException("用户名或密码错误");
+        }
+    }
+
+    /**
+     * 更新用户密码
+     *
+     * @param teacherId
+     * @param oldPassword
+     * @param newPassword
+     */
+    public void modifyPwd(long teacherId, String oldPassword, String newPassword) {
+        Assert.isTrue(teacherId > 0, "无效的教师id");
+        Assert.hasLength(oldPassword, "旧密码不能为空");
+        Assert.hasLength(newPassword, "新密码不能为空");
+        UserPassword userPassword = userPasswordRepository.findByTeacherPassword(teacherId, EncryptionUtil.EncryptionStr(oldPassword, ALGORITHM_MD5));
+        if (userPassword == null) {
+            throw new MyException("用户名或密码错误");
+        }
+        userPassword = new UserPassword(teacherId, EncryptionUtil.EncryptionStr(newPassword, ALGORITHM_MD5));
+        userPasswordRepository.save(userPassword);
+    }
 }
