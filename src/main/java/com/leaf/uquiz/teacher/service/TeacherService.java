@@ -71,7 +71,9 @@ public class TeacherService {
     public Teacher findTeacherByOpenId(String openId) {
         Assert.hasLength(openId, "openId不能为空");
         Teacher teacher = teacherRepository.findByOpenId(openId);
-        teacher.setNickName(decodeNickName(teacher.getNickName()));
+        if (teacher != null) {
+            teacher.setNickName(decodeNickName(teacher.getNickName()));
+        }
         return teacher;
     }
 
@@ -172,6 +174,12 @@ public class TeacherService {
      * @return
      */
     private Course getCourseDetail(Course course) {
+        long teacherId = course.getTeacherId();
+        Teacher teacher = teacherRepository.findOne(teacherId);
+        if (null == teacher) {
+            throw new MyException("无效的课程");
+        }
+        course.setTeacherHeadImg(teacher.getHeadImg());
         int count = courseReadRepository.getReadCount(course.getId());
         course.setCount(count);
         List<CourseContent> contents = courseContentRepository.getCourseContents(course.getId(), Status.ENABLED);
@@ -459,7 +467,7 @@ public class TeacherService {
         Teacher teacher = new Teacher();
         String name = registerDto.getName();
         teacher.setNickName(name);
-        teacher.setNickName(name);
+        teacher.setName(name);
         teacher = teacherRepository.save(teacher);
         UserPassword userPassword = new UserPassword(teacher.getId(), EncryptionUtil.EncryptionStr(registerDto.getPassword(), ALGORITHM_MD5));
         userPasswordRepository.save(userPassword);
@@ -503,4 +511,5 @@ public class TeacherService {
         userPassword = new UserPassword(teacherId, EncryptionUtil.EncryptionStr(newPassword, ALGORITHM_MD5));
         userPasswordRepository.save(userPassword);
     }
+
 }

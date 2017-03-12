@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 /**
  * @author <a href="mailto:qianwx@asiainfo.com">qianwx</a>
@@ -20,7 +19,7 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
  */
 @SpringBootApplication
 @EnableTransactionManagement
-@EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class, HttpSessionHandshakeInterceptor.class})
+@EnableAutoConfiguration(exclude = {RedisAutoConfiguration.class})
 @EnableConfigurationProperties({RedisSettings.class, FileSettings.class, WeixinConfig.class, SystemConfig.class, KaptchaConfig.class})
 public class UquizApplication {
 

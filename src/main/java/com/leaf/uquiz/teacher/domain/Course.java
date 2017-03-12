@@ -57,6 +57,10 @@ public class Course implements Serializable {
     @ApiModelProperty(readOnly = true)
     private int count;
 
+    @Transient
+    @ApiModelProperty(readOnly = true)
+    private String teacherHeadImg;
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -132,5 +136,13 @@ public class Course implements Serializable {
 
     public Course(long teacherId) {
         this.teacherId = teacherId;
+    }
+
+    public String getTeacherHeadImg() {
+        return teacherHeadImg;
+    }
+
+    public void setTeacherHeadImg(String teacherHeadImg) {
+        this.teacherHeadImg = teacherHeadImg;
     }
 }

@@ -12,11 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.UUID;
 
 /**
@@ -55,11 +57,20 @@ public class UserController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private SimpUserRegistry userRegistry;
+
     @RequestMapping(value = "/sendTime", method = RequestMethod.GET)
-    public void sendTime() {
+    public void sendTime(Principal principal) {
         logger.info("sessionId:{}", SessionUtils.getSession().getId());
+        if(principal != null){
+            logger.info("principal:{}", principal.getName());
+        }
         String uuid = stringCache.get("uuid");
         logger.info("sessionID:{}", stringCache.get(uuid) + "");
         messagingTemplate.convertAndSendToUser(stringCache.get(uuid), "/queue/notifications", System.currentTimeMillis());
+        userRegistry.getUsers().stream()
+                .map(u -> u.getName())
+                .forEach(logger::info);
     }
 }

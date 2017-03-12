@@ -6,10 +6,7 @@ import com.leaf.uquiz.core.cache.StringCache;
 import com.leaf.uquiz.core.config.SystemConfig;
 import com.leaf.uquiz.core.config.WeixinConfig;
 import com.leaf.uquiz.core.exception.MyException;
-import com.leaf.uquiz.core.utils.HttpClientUtil;
-import com.leaf.uquiz.core.utils.IOUtils;
-import com.leaf.uquiz.core.utils.SessionUtils;
-import com.leaf.uquiz.core.utils.XMLUtil;
+import com.leaf.uquiz.core.utils.*;
 import com.leaf.uquiz.file.config.FileSettings;
 import com.leaf.uquiz.teacher.domain.Teacher;
 import com.leaf.uquiz.teacher.service.TeacherService;
@@ -36,7 +33,10 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class WeixinService {
             "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code";
     // TODO: 2017/2/19  微信token地址修改
     private static final String WEIXIN_BASE_URL =
-            "http://api.study.pointshare.com/api/weixin/show?real_url=s%";
+            "http://api.studypointshare.com/api/weixin/show?real_url=%s";
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
     private static final String USER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN";
     private static final String TEMPLATE_SEND_URL = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
@@ -149,7 +149,7 @@ public class WeixinService {
                     weixinConfig.getAppSecret()}, null);
             accessToken = object.getString(ACCESS_TOKEN);
             logger.info("get Access_token from weixin end:{}", accessToken);
-
+            stringCache.set(ACCESS_TOKEN,accessToken,7200);
         }
         return accessToken;
     }
@@ -197,7 +197,7 @@ public class WeixinService {
      */
     public String initAuth(String url, String userType) {
         Assert.hasLength(url, "url不能为空");
-        logger.info("url:{1}", url);
+        logger.info("url:{}", url);
         return "redirect:" + String.format(WEIXIN_AUTHORIZE_URL,
                 weixinConfig.getAppId(),
                 encode(String.format(WEIXIN_BASE_URL, url)), userType);
@@ -384,6 +384,8 @@ public class WeixinService {
             // 释放连接
             method.releaseConnection();
             ((SimpleHttpConnectionManager) client.getHttpConnectionManager()).shutdown();
+            AmrToMp3.convert(fileSettings.getAmrPath() + mediaId + AMR_SUFFIX,
+                    fileSettings.getMp3Path() + mediaId + MP3_SUFFIX);
         }
     }
 }
