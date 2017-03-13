@@ -1,5 +1,6 @@
 package com.leaf.uquiz.teacher.service;
 
+import com.leaf.uquiz.core.cache.StringCache;
 import com.leaf.uquiz.core.enums.Status;
 import com.leaf.uquiz.core.exception.MyException;
 import com.leaf.uquiz.core.utils.EncryptionUtil;
@@ -57,6 +58,9 @@ public class TeacherService {
 
     @Autowired
     private UserPasswordRepository userPasswordRepository;
+
+    @Autowired
+    private StringCache stringCache;
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -297,7 +301,8 @@ public class TeacherService {
      */
     public String scanView() {
         String ticket = weixinService.scanView();
-        SessionUtils.getSession().setAttribute("user", ticket);
+        //二维码有效期300sec
+        stringCache.set(ticket, SessionUtils.getSession().getId(), 300);
         return ticket;
     }
 
@@ -309,16 +314,23 @@ public class TeacherService {
      */
     public Resp scanLogin(String fromUserName, String toUserName, String ticket) {
         Teacher teacher = weixinService.loginTeacher(fromUserName);
-        if (teacher != null) {
-            messagingTemplate.convertAndSendToUser(ticket, "/queue/notifications", fromUserName);
+        String user = stringCache.get(ticket);
+        String content = "您通过扫码登录了uquiz";
+        if (user != null) {
+            if (teacher != null) {
+                messagingTemplate.convertAndSendToUser(user, "/queue/notifications", fromUserName);
+            } else {
+                messagingTemplate.convertAndSendToUser(user, "/queue/notifications", false);
+            }
         } else {
-            throw new RuntimeException("some error occurs");
+            content = "二维码已过期";
         }
+
         TextResp resp = new TextResp();
         resp.ToUserName = fromUserName;
         resp.FromUserName = toUserName;
         resp.CreateTime = System.currentTimeMillis();
-        resp.Content = "您通过扫码登录了uquiz";
+        resp.Content = content;
         return resp;
     }
 
@@ -468,6 +480,8 @@ public class TeacherService {
         String name = registerDto.getName();
         teacher.setNickName(name);
         teacher.setName(name);
+        String openId = (String) SessionUtils.getSession().getAttribute("openId");
+        teacher.setOpenId(openId);
         teacher = teacherRepository.save(teacher);
         UserPassword userPassword = new UserPassword(teacher.getId(), EncryptionUtil.EncryptionStr(registerDto.getPassword(), ALGORITHM_MD5));
         userPasswordRepository.save(userPassword);

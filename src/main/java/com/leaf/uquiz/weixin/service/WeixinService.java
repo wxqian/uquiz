@@ -149,7 +149,7 @@ public class WeixinService {
                     weixinConfig.getAppSecret()}, null);
             accessToken = object.getString(ACCESS_TOKEN);
             logger.info("get Access_token from weixin end:{}", accessToken);
-            stringCache.set(ACCESS_TOKEN,accessToken,7200);
+            stringCache.set(ACCESS_TOKEN, accessToken, 7200);
         }
         return accessToken;
     }
@@ -229,7 +229,12 @@ public class WeixinService {
         SessionUtils.getSession().setAttribute("openId", openId);
         if (StringUtils.equals(userType, "teacher")) {
             Teacher teacher = loginTeacher(openId);
-            SessionUtils.getSession().setAttribute("teacher", teacher);
+            if (teacher == null) {
+                realUrl = "http://m.studypointshare.com/login.html";
+            } else {
+                SessionUtils.getSession().setAttribute("teacher", teacher);
+            }
+
         }
         return "redirect:" + realUrl;
     }
@@ -244,10 +249,13 @@ public class WeixinService {
         Teacher teacher = teacherService.findTeacherByOpenId(openId);
         if (teacher == null) {
             JSONObject obj = invoke(USER_INFO_URL, new String[]{accessToken(), openId}, null);
-            String nickName = obj.getString("nickname");
-            String headImg = obj.getString("headimgurl");
-            logger.info("nickName:{},headImg:{}", nickName, headImg);
-            teacher = teacherService.createTeacher(openId, nickName, headImg);
+            boolean subscibe = StringUtils.equals("1", obj.getString("subscribe"));
+            if (subscibe) {
+                String nickName = obj.getString("nickname");
+                String headImg = obj.getString("headimgurl");
+                logger.info("nickName:{},headImg:{}", nickName, headImg);
+                teacher = teacherService.createTeacher(openId, nickName, headImg);
+            }
         }
         return teacher;
     }
