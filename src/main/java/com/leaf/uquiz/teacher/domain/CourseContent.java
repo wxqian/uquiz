@@ -49,6 +49,10 @@ public class CourseContent implements Serializable {
     @ApiModelProperty("排序")
     private int sort;
 
+    @Column(columnDefinition = "int default 0")
+    @ApiModelProperty("时长")
+    private int duration;
+
     public String getContent() {
         return content;
     }
@@ -95,5 +99,13 @@ public class CourseContent implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 }

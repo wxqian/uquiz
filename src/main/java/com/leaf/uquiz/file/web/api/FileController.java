@@ -85,9 +85,6 @@ public class FileController {
                 if (StringUtils.isNotBlank(owner)) {
                     file.setOwner(owner);
                 }
-                if (StringUtils.isNotBlank(name)) {
-                    file.setName(name);
-                }
                 file.setUserId(0L);
                 fileService.saveInputStreamFile(file, upload.getInputStream());
                 files.add(file);

@@ -2,6 +2,7 @@ package com.leaf.uquiz.weixin.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.leaf.uquiz.core.cache.StringCache;
 import com.leaf.uquiz.core.config.SystemConfig;
 import com.leaf.uquiz.core.config.WeixinConfig;
@@ -65,6 +66,8 @@ public class WeixinService {
     private static final String JSAPI_TICKET_URL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi";
     private static final String qrUrl = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s";
     private static final String fileUrl = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s";
+    private static final String URL_MENU = "https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token=%s";
+    private static final String URL_CREATE_MENU = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s";
     private static final String AMR_SUFFIX = ".amr";
     private static final String MP3_SUFFIX = ".mp3";
 
@@ -395,5 +398,23 @@ public class WeixinService {
             AmrToMp3.convert(fileSettings.getAmrPath() + mediaId + AMR_SUFFIX,
                     fileSettings.getMp3Path() + mediaId + MP3_SUFFIX);
         }
+    }
+
+    /**
+     * 获取微信公众号的配置菜单
+     * @return
+     */
+    public String menuJson() {
+        return JSON.toJSONString(invoke(URL_MENU,new String[]{accessToken()},null)
+                .get("selfmenu_info"), SerializerFeature.PrettyFormat);
+    }
+
+    /**
+     *
+     * @param menu
+     */
+    public void createMenu(String menu){
+        Assert.hasLength(menu,"自定义菜单不能为空");
+        invoke2(URL_CREATE_MENU,new String[]{accessToken()},menu);
     }
 }

@@ -75,4 +75,20 @@ public class WxCtl {
     public void downVoice(@RequestParam("mediaId") String mediaId) {
         weixinService.downVoice(mediaId);
     }
+
+    @RequestMapping(value = "/getMenu",method = RequestMethod.GET)
+    @ResponseBody
+    @ApiResponses({@ApiResponse(code = 200,message = "查看微信配置菜单")})
+    @ApiOperation(value = "查看微信配置菜单",notes = "查看微信配置菜单")
+    public String menuJson(){
+        return weixinService.menuJson();
+    }
+
+    @RequestMapping(value = "/createMenu",method = RequestMethod.POST)
+    @ResponseBody
+    @ApiResponses({@ApiResponse(code = 200,message = "创建菜单成功")})
+    @ApiOperation(value = "创建菜单",notes = "创建菜单")
+    public void createMenu(@RequestParam("menu") String menu){
+        weixinService.createMenu(menu);
+    }
 }
