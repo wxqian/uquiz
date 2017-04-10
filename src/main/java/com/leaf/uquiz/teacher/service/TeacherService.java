@@ -243,6 +243,7 @@ public class TeacherService {
      * @param id      课程id
      * @return CourseContent
      */
+    @Transactional
     public CourseContent addContent(CourseContent content, long id) {
         Assert.notNull(content, "内容不能为空");
         Assert.isTrue(content.getCourseId() > 0, "内容必须指定课程");
@@ -485,6 +486,7 @@ public class TeacherService {
         teacher = teacherRepository.save(teacher);
         UserPassword userPassword = new UserPassword(teacher.getId(), EncryptionUtil.EncryptionStr(registerDto.getPassword(), ALGORITHM_MD5));
         userPasswordRepository.save(userPassword);
+        SessionUtils.getSession().setAttribute("teacher", teacher);
     }
 
     /**
@@ -505,6 +507,7 @@ public class TeacherService {
         if (userPassword == null) {
             throw new MyException("用户名或密码错误");
         }
+        SessionUtils.getSession().setAttribute("teacher", teacher);
     }
 
     /**

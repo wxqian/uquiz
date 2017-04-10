@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public class TeacherController {
     @RequestMapping(value = "/listCourse", method = RequestMethod.GET)
     @ApiResponses({@ApiResponse(code = 200, message = "获取课程信息成功")})
     @ApiOperation(value = "获取教师课程信息", notes = "获取教师课程信息")
-    public Page<Course> listCourse(@ApiParam(name = "pageable", value = "分页信息,传参方式：?page=0&size=50") @PageableDefault(page = 0, size = 5) Pageable pageable,
+    public Page<Course> listCourse(  Pageable pageable,
                                    @ApiParam(name = "type", value = "查看所有课程或查看已发布课程,view|use") @RequestParam(name = "type", defaultValue = "view") String type) {
         return teacherService.listCourse(pageable, type);
     }
